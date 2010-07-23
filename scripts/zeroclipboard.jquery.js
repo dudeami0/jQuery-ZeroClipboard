@@ -80,7 +80,19 @@ var ZeroClipboard = {
 			orig.apply(this, arguments);
 		}
 	})();
+	
+	$(window).resize(function () {
+		$.each(ZeroClipboard.pairs, function (id, contents) {
+			if (contents == null) return;
+			$(contents).data('zeroclipboard_resize', true);
+			ZeroClipboard.update(id);
+		});
+	});
 
+	$("*").bind('remove', function () {
+		$(window).resize();
+	});
+	
 	
 	$.fn.zeroclipboarduid = function (fnoptions) {
 		var options = {
@@ -130,6 +142,7 @@ var ZeroClipboard = {
 			var id = $(this).data('zeroclipboard_id');
 			// console.log("Attempting to remove flash for id #" + id);
 			$('#zeroclipboard_swf_' + id).parent().remove();
+			ZeroClipboard.pairs[id] = null;
 		} else {
 			// Grab our ID
 			if (!update) {
@@ -194,6 +207,7 @@ var ZeroClipboard = {
 					var id = $(this).data('zeroclipboard_id');
 					// console.log("Attempting to remove flash for id #" + id);
 					$('#zeroclipboard_swf_' + id).parent().remove();
+					ZeroClipboard.pairs[id] = null;
 				});
 			} else {
 				// Set our ID for update

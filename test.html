@@ -4,7 +4,7 @@
 <head> 
 <title>ZeroClipboard for jQuery</title>
 <style type="text/css">
-body {
+div.contents {
 	width: 700px;
 }
 * {
@@ -35,13 +35,16 @@ input {
 </style>
 </head>
 <body>
-	<code></code>
 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
 	<script type="text/javascript" src="scripts/zeroclipboard.jquery.js"></script>
 	<script type="text/javascript" src="scripts/jquery.ba-resize.min.js"></script>
 	<script type="text/javascript">
 	$(function () {
 		$('#tester').zeroclipboard({
+			'text': 'Hahaha! You clicked me :)',
+			'hand': true
+		});
+		$('#resizetest').zeroclipboard({
 			'text': 'Hahaha! You clicked me :)',
 			'hand': true
 		});
@@ -81,59 +84,65 @@ input {
 		
 	});
 	</script>
-	<h1>ZeroClipboard for jQuery</h1>
-	<p>Hello! My name is Kris, I created (Or, modified) this script to allow ZeroClipboard to mingle with jQuery a bit better.
-	The main goal of this project was to make a very simple clipboard feature, as the original didn't meet my needs. The problem
-	was that I had a site with multiple clipboards, needing to be managed and updated by the elements, and so this version
-	stores all the data in the elements, and pairs the element and flash object with an array. Also, its like any other jQuery
-	plugin you have seen :) Below are some examples on the use, and shows off some of its abilities.</p>
-	<p><strong>Important Notice!</strong> This scripts resize abilites are provided by a very helpful script over at BelAlman.com.
-	It takes the resize functionality of window, and applies it to other elements. Grab a copy from 
-	<a href="http://benalman.com/projects/jquery-resize-plugin/">this blog post</a> to enable the feature in this script. The only
-	other requirement is jQuery, but we all knew that one :)</p>
-	<h2>Basic Functionality</h2>
-	<div id="tester" class="example">Click to Copy Clipboard (Im a DIV)</div>
-	<p>Paste here -&gt; <input type="text" /></p>
-	<div class="code">
-// Code for a basic clipboard.<br />
-$(element).zeroclipboard({<br />
- &nbsp; 'text': '', // Set something for the user to copy<br />
- &nbsp; 'hand': true // Sets if you want the hand to show or not to show.<br />
-});
+	<div style="float: right; width: 300px;">
+		<p>Now, this test is for the window resize event. Just resize the window, and if it stays on the div below, the resize works fine :)</p>
+		<div id="resizetest" class="example">Copy something :D</div>
 	</div>
-	<p>And as another example, you update the clipboards the same way you make them. So the code above you create or update
-	the clipboard. Try clicking the div to update the clipboard above.</p>
-	<div class="example" style="cursor: pointer;" id="testerupdate">Update the Clipboard Above</div>
-	<p>Note after doing so, the flash object is also resized to fit the </p>
-	<h2>Destorying</h2>
-	<p>Below will be a basic example of the destroying of the clipboard. 
-	<a href="#" onclick="return false;" id="destroyflasha">Click here to remove the flash clipboard below.</a></p>
-	<div class="example" id="destroyflash">Destroy this thing on me!</div>
-	<p>Now above we destroyed just the flash object, but when the element is removed using the $(ele).remove() method, we
-	come up with this:</p>
-	<div class="example" id="destroywhole">Destroy me!</div>
-	<p>And, <a href="#" id="destroywholea" onclick="return false;">Click me to destroy the element above me.</a></p>
-	<p>Notice the flash object is also removed with the element.</p>
-	<h2>Binding Events</h2>
-	<p>Finally, we come to the binding of events. There are 4 types of events. mouseOver, mouseOut, mouseDown, mouseUp. Using events
-	is also simple:</p>
-	<div id="testercss" class="example">Watch me change colors!</div>
-	<p>This is done with events. With this the CSS effects can be much more specific, and you can call other events at certain stages.
-	The this in the element refers to the element the flash object is paired to.</p>
-	<p>The following is an example in using the events, its just as you would with any event on the div.</p>
-	<div class="code">
-$('#testercss').zeroclipboard({<br />
- &nbsp; 'text': 'Copied from #testercss',<br />
- &nbsp; 'hand': true<br />
-}).mouseover(function () {<br />
- &nbsp; $(this).css({'color': '#f00'}, 1000);<br />
-}).mouseout(function () {<br />
- &nbsp; $(this).css({'color': '#000'}, 1000);<br />
-}).mousedown(function () {<br />
- &nbsp; $(this).css('font-weight', 'bold');<br />
-}).mouseup(function () {<br />
- &nbsp; $(this).css('font-weight', 'normal');<br />
-});
+	<div class="contents">
+		<h1>ZeroClipboard for jQuery</h1>
+		<p>Hello! My name is Kris, I created (Or, modified) this script to allow ZeroClipboard to mingle with jQuery a bit better.
+		The main goal of this project was to make a very simple clipboard feature, as the original didn't meet my needs. The problem
+		was that I had a site with multiple clipboards, needing to be managed and updated by the elements, and so this version
+		stores all the data in the elements, and pairs the element and flash object with an array. Also, its like any other jQuery
+		plugin you have seen :) Below are some examples on the use, and shows off some of its abilities.</p>
+		<p><strong>Important Notice!</strong> This scripts resize abilites are provided by a very helpful script over at BelAlman.com.
+		It takes the resize functionality of window, and applies it to other elements. Grab a copy from 
+		<a href="http://benalman.com/projects/jquery-resize-plugin/">this blog post</a> to enable the feature in this script. The only
+		other requirement is jQuery, but we all knew that one :)</p>
+		<h2>Basic Functionality</h2>
+		<div id="tester" class="example">Click to Copy Clipboard (Im a DIV)</div>
+		<p>Paste here -&gt; <input type="text" /></p>
+		<div class="code">
+			// Code for a basic clipboard.<br />
+			$(element).zeroclipboard({<br />
+			 &nbsp; 'text': '', // Set something for the user to copy<br />
+			 &nbsp; 'hand': true // Sets if you want the hand to show or not to show.<br />
+			});
+		</div>
+		<p>And as another example, you update the clipboards the same way you make them. So the code above you create or update
+		the clipboard. Try clicking the div to update the clipboard above.</p>
+		<div class="example" style="cursor: pointer;" id="testerupdate">Update the Clipboard Above</div>
+		<p>Note after doing so, the flash object is also resized to fit the </p>
+		<h2>Destorying</h2>
+		<p>Below will be a basic example of the destroying of the clipboard. 
+		<a href="#" onclick="return false;" id="destroyflasha">Click here to remove the flash clipboard below.</a></p>
+		<div class="example" id="destroyflash">Destroy this thing on me!</div>
+		<p>Now above we destroyed just the flash object, but when the element is removed using the $(ele).remove() method, we
+		come up with this:</p>
+		<div class="example" id="destroywhole">Destroy me!</div>
+		<p>And, <a href="#" id="destroywholea" onclick="return false;">Click me to destroy the element above me.</a></p>
+		<p>Notice the flash object is also removed with the element.</p>
+		<h2>Binding Events</h2>
+		<p>Finally, we come to the binding of events. There are 4 types of events. mouseOver, mouseOut, mouseDown, mouseUp. Using events
+		is also simple:</p>
+		<div id="testercss" class="example">Watch me change colors!</div>
+		<p>This is done with events. With this the CSS effects can be much more specific, and you can call other events at certain stages.
+		The this in the element refers to the element the flash object is paired to.</p>
+		<p>The following is an example in using the events, its just as you would with any event on the div.</p>
+		<div class="code">
+			$('#testercss').zeroclipboard({<br />
+			 &nbsp; 'text': 'Copied from #testercss',<br />
+			 &nbsp; 'hand': true<br />
+			}).mouseover(function () {<br />
+			 &nbsp; $(this).css({'color': '#f00'}, 1000);<br />
+			}).mouseout(function () {<br />
+			 &nbsp; $(this).css({'color': '#000'}, 1000);<br />
+			}).mousedown(function () {<br />
+			 &nbsp; $(this).css('font-weight', 'bold');<br />
+			}).mouseup(function () {<br />
+			 &nbsp; $(this).css('font-weight', 'normal');<br />
+			});
+		</div>
 	</div>
 </body>
 </html>
