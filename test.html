@@ -35,55 +35,11 @@ input {
 </style>
 </head>
 <body>
-	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
-	<script type="text/javascript" src="scripts/zeroclipboard.jquery.js"></script>
+	<script type="text/javascript" src="scripts/jquery-1.4.2.js"></script>
+	<script type="text/javascript" src="scripts/zeroclipboard.jquery.min.js"></script>
 	<script type="text/javascript" src="scripts/jquery.ba-resize.min.js"></script>
-	<script type="text/javascript">
-	$(function () {
-		$('#tester').zeroclipboard({
-			'text': 'Hahaha! You clicked me :)',
-			'hand': true
-		});
-		$('#resizetest').zeroclipboard({
-			'text': 'Hahaha! You clicked me :)',
-			'hand': true
-		});
-		$('#testerupdate').click(function () {
-			$('#tester').css('width', '100px');
-			$('#tester').zeroclipboard({
-				'text': 'Updated from #testerupdate ;)',
-				'hand': true
-			});	
-		});
-		$('#destroyflash').zeroclipboard({
-			'text': 'Copied from #destroyflash, now destroy the flash!',
-			'hand': true
-		});
-		$('#destroyflasha').click(function () {
-			$('#destroyflash').zeroclipboard({'destroy': true});
-		});
-		$('#destroywhole').zeroclipboard({
-			'text': 'Copied from #destroywhole, now destroy me!',
-			'hand': true
-		});
-		$('#destroywholea').click(function () {
-			$('#destroywhole').remove();
-		});
-		$('#testercss').zeroclipboard({
-			'text': 'Copied from #testercss',
-			'hand': true
-		}).mouseover(function () {
-			$(this).css({'color': '#f00'}, 1000);
-		}).mouseout(function () {
-			$(this).css({'color': '#000'}, 1000);
-		}).mousedown(function () {
-			$(this).css('font-weight', 'bold');
-		}).mouseup(function () {
-			$(this).css('font-weight', 'normal');
-		});
-		
-	});
-	</script>
+	<script type="text/javascript" src="scripts/swfobject.js"></script>
+	<script type="text/javascript" src="scripts/example.js"></script>
 	<div style="float: right; width: 300px;">
 		<p>Now, this test is for the window resize event. Just resize the window, and if it stays on the div below, the resize works fine :)</p>
 		<div id="resizetest" class="example">Copy something :D</div>
