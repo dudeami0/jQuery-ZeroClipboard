@@ -1,0 +1,18 @@
+The file zeroclipboard.jquery.js in this package is licensed under the GPL v3.0. To read the license, refer to GPL-License.txt in this package.
+
+This project has sourcecode from other projects. The projects are:
+
+ZeroClipboard
+ - scripts/ZeroClipboard.as
+ - scripts/ZeroClipboard.fla
+ - scripts/ZeroClipboard.js
+ - scripts/ZeroClipboard.swf
+ - scripts/ZeroClipboard10.as
+ - scripts/ZeroClipboard10.fla
+ - scripts/ZeroClipboard10.swf
+ 
+jQuery
+ - script/jquery.1.4.2.js
+ 
+Ben Alman's jQuery resize event
+ - jquery.ba-resize.js
