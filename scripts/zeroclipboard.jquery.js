@@ -7,7 +7,7 @@
  */
 
 var ZeroClipboard = {
-	moviepath: 'http://localhost/jquery.zeroclipboard/scripts/ZeroClipboard.swf',
+	moviepath: 'scripts/ZeroClipboard/ZeroClipboard.swf',
 	objects: [],
 	// The pairs take the SWF id and match it back to the original element
 	pairs: {},
@@ -20,19 +20,22 @@ var ZeroClipboard = {
 				// bug fix: Cannot extend EMBED DOM elements in Firefox, must use traditional function
 				var movie = document.getElementById('zeroclipboard_swf_' + id);
 				if (!movie) {
-					setTimeout( function() { ZeroClipboard.dispatch(id, 'load', null); }, 1 );
+					setTimeout( function() {ZeroClipboard.dispatch(id, 'load', null);}, 1 );
 					return;
 				}
-				
+
 				// firefox on pc needs a "kick" in order to set these in certain cases
 				if (!$(ZeroClipboard.pairs[id]).data("zeroclipboard_ready") && navigator.userAgent.match(/Firefox/) && navigator.userAgent.match(/Windows/)) {
-					setTimeout( function() { ZeroClipboard.dispatch(id, 'load', null); }, 100 );
+					setTimeout( function() {ZeroClipboard.dispatch(id, 'load', null);}, 100 );
 					$(this.pairs[id]).data("zeroclipboard_ready", true);
 					return;
 				}
-				
+
 				$(this.pairs[id]).data("zeroclipboard_ready", true);
 				ZeroClipboard.update(id);
+				break;
+			case 'complete':
+
 				break;
 			case 'mouseover':
 				$(this.pairs[id]).trigger('mouseover');
@@ -41,12 +44,16 @@ var ZeroClipboard = {
 				$(this.pairs[id]).trigger('mouseout');
 				// This is to cover up the bug of dragging the mouse out of the flash.
 				// Mainly used when reseting css
-				$(this.pairs[id]).trigger('mouseup');
+				if ($(this.pairs[id]).data('zeroclipboard_downfix')) {
+					$(this.pairs[id]).trigger('mouseup');
+				}
 				break;
 			case 'mouseup':
 				$(this.pairs[id]).trigger('mouseup');
+				$(this.pairs[id]).data('zeroclipboard_downfix', false);
 				break;
 			case 'mousedown':
+				$(this.pairs[id]).data('zeroclipboard_downfix', true);
 				$(this.pairs[id]).trigger('mousedown');
 				break;
 		}
@@ -85,7 +92,7 @@ var ZeroClipboard = {
 };
 
 (function ($) {(
-	// Code borrowed from 
+	// Code borrowed from
 	// http://stackoverflow.com/questions/2200494/jquery-trigger-event-when-an-element-is-removed-from-the-dom
 	function() {
 		var ev = new $.Event('remove'),
@@ -95,7 +102,15 @@ var ZeroClipboard = {
 			orig.apply(this, arguments);
 		}
 	})();
-	
+
+	// Setup a polling on displays of parent objects
+	setInterval(function () {
+		$.each(ZeroClipboard.pairs, function (id, contents) {
+			$('#zeroclipboard_swf_' + id).parent().css('display', $(contents).is(':visible') ? 'block' : 'none');
+		});
+	}, 250);
+
+	// Setup window resize event.
 	$(window).resize(function () {
 		$.each(ZeroClipboard.pairs, function (id, contents) {
 			if (contents == null) return;
@@ -104,17 +119,18 @@ var ZeroClipboard = {
 		});
 	});
 
+	// Run the window resize anytime an element is removed
 	$("*").bind('remove', function () {
 		$(window).resize();
 	});
-	
-	
+
+
 	$.fn.zeroclipboarduid = function (fnoptions) {
 		if ($(this).length < 1) return;
 		var options = {
 			'prefix': '',
 			'length': 8,
-			'chars': "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz"		
+			'chars': "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz"
 		};
 		if (typeof fnoptions != "undefined") {
 			$.extend(options, fnoptions);
@@ -141,7 +157,7 @@ var ZeroClipboard = {
 			return $;
 		});
 	}
-	
+
 	$.fn.zeroclipboard = function (fnoptions) {
 		if ($(this).length < 1) return;
  		// console.time('zeroclipboard');
@@ -176,84 +192,11 @@ var ZeroClipboard = {
 				var elemHeight = $(this).outerHeight();
 				var elemPos = $(this).offset();
 				// Create our clipboard and container
-				//<embed width="10" height="21"
-				//flashvars="id=2&amp;width=10&amp;height=21"
 				var flashObj = null;
-				/* TODO: Remove if SWFObject tests good :S
-				if (jQuery.browser.msie) {
-					flashObj = $('<object></object>')
-						.attr('classid', 'clsid:d27cdb6e-ae6d-11cf-96b8-444553540000')
-						.attr('codebase', (location.href.match(/^https/i) ? 'https://' : 'http://') + 'download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=9,0,0,0')
-						.attr('width', elemWidth)
-						.attr('height', elemHeight)
-						.attr('id', 'zeroclipboard_swf_' + id)
-						.attr('align', 'middle');
-					$('<param />')
-						.attr('name', 'allowScriptAccess')
-						.attr('value', 'always')
-						.appendTo(flashObj);
-					$('<param />')
-						.attr('name', 'allowFullScreen')
-						.attr('value', 'false')
-						.appendTo(flashObj);
-					$('<param />')
-						.attr('name', 'movie')
-						.attr('value', ZeroClipboard.moviepath)
-						.appendTo(flashObj);
-					$('<param />')
-						.attr('name', 'loop')
-						.attr('value', 'false')
-						.appendTo(flashObj);
-					$('<param />')
-						.attr('name', 'menu')
-						.attr('value', 'false')
-						.appendTo(flashObj);
-					$('<param />')
-						.attr('name', 'quality')
-						.attr('value', 'best')
-						.appendTo(flashObj);
-					$('<param />')
-						.attr('name', 'bgcolor')
-						.attr('value', '#ffffff')
-						.appendTo(flashObj);
-					$('<param />')
-						.attr('name', 'FlashVars')
-						.attr('value', 'id=' + id + '&width=' + elemWidth + '&height=' + elemHeight)
-						.appendTo(flashObj);
-					$('<param />')
-						.attr('name', 'wmode')
-						.attr('value', 'transparent')
-						.appendTo(flashObj);
-				} else {
-					flashObj = $('<embed></embed>')
-					// Append some flash specific vars.
-						.attr('pluginspage', 'http://www.macromedia.com/go/getflashplayer')
-						.attr('type', 'application/x-shockwave-flash')
-						.attr('allowfullscreen', 'false')
-						.attr('allowscriptaccess', 'always')
-						//.attr('swliveconnect', 'true')
-						.attr('quality', 'best')
-						.attr('align', 'middle')
-						.attr('wmode', 'transparent')
-						.attr('bgcolor', '#ffffff')
-						.attr('menu', 'false')
-						.attr('loop', 'false')
-					// Now we set the source of the swf file
-						.attr('src', ZeroClipboard.moviepath)
-					// Set the ID of the movie
-						.attr('id', 'zeroclipboard_swf_' + id)
-						.attr('name', 'zeroclipboard_swf_' + id)
-					// Then we set the dimensions and css properties
-						.attr('width', elemWidth)
-						.attr('height', elemHeight)
-						.attr('flashvars', 'id=' + id + '&width=' + elemWidth + '&height=' + elemHeight);
-					// Now thats done, we need to make a div to set this in.
-				}
-				*/
 				// Create a temp div for the SWFObject
 				$('<div></div>').attr('id', 'zeroclipboard_swf_' + id).appendTo('body');
 				swfobject.embedSWF(ZeroClipboard.moviepath, 'zeroclipboard_swf_' + id, elemWidth, elemHeight, "9.0.0", "", {
-					'id': id, 
+					'id': id,
 					'width': elemWidth,
 					'height': elemHeight
 				}, {
@@ -272,7 +215,7 @@ var ZeroClipboard = {
 						'left': elemPos.left,
 						'top': elemPos.top
 					})
-				
+
 				//$(flashCont).css('zIndex', ZeroClipboard.zindex)
 				$('#zeroclipboard_swf_' + id).appendTo(flashCont);
 				ZeroClipboard.zindex++;
@@ -281,7 +224,7 @@ var ZeroClipboard = {
 				// Note! This only works with the jQuery Resize Event from Ben Alman
 				// Url: http://benalman.com/projects/jquery-resize-plugin/
 				$(this).resize(function () {
-					$(this).data('zeroclipboard_resize', true);	
+					$(this).data('zeroclipboard_resize', true);
 					ZeroClipboard.update(id);
 				});
 				// Add an event to test when the element is destroyed to also destroy
@@ -312,5 +255,5 @@ var ZeroClipboard = {
 			return $;
 		});
 	};
-	
+
 })(jQuery);
