@@ -1,259 +1,365 @@
 /**
- * File is created under the GPL.
- * Made by Kris aka DudeAmI
- * http://www.dudeami.com
+ * jQuery ZeroClipboard Plugin v2.0
+ * Created by DudeAmI <dudeami0@gmail.com>
+ * Homepage: http://dudeami.com/
  *
- * Code is based off of the original Javascript from the zeroclipboard.js
+ * Licensing
+ * ---------
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *   
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *   
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Documentation
+ * -------------
+ *
+ *    To use the plugin, simply do
+ *
+ *       $('#myelement').zeroclipboard({text: 'Copy me to clipboard!'});
+ *
+ *    After you call a zeroclipboard on an element, you can update it whenever like:
+ *
+ *       $('#myelement').zeroclipboard({
+ *          text: 'Changed the text on you!',
+ *          hand: true
+ *       });
+ *
+ *    To destroy the zeroclipboard instance on the element, simply do
+ *
+ *       $('#myelement').zeroclipboard('destroy');
+ *
+ *    That should about cover the basic usage :p
+ *
+ *    Please note that due to the way this plugin works, when hovering over an element triggered with zeroclipboard,
+ *    the mouseleave and mouseout events are triggered due to the actual element getting covered. As shown in the
+ *    example page, it won't effect most things, it's just they get called twice (A mouseleave followed by a
+ *    mouseenter).
+ *
+ * General options
+ * ---------------
+ *
+ *    These options can be defined after this script has been loaded. Simply do:
+ *
+ *       ZeroClipboard.moviepath = 'http://domain.com/my/path/to/ZeroClipboard.swf';
+ *
+ *    Name              Default                Details
+ *    -----------------------------------------------------------------------------------------
+ *    moviepath         'ZeroClipboard.swf'    The location of the ZeroClipboard.swf file.
+ *    pollingInterval   500                    How often to do our polling, in milliseconds.
+ *
+ * Options for elements
+ * --------------------
+ *
+ *    These options can be added when adding zeroclipboard to an element, and can be set after that too.
+ *
+ *    Name         Default         Details
+ *    ------------------------------------------------------------------------------------------------------------
+ *    text         'Copy me!'      The text to copy from this element.
+ *    sizeMethod   null            Which method to get the size of the element, accepts 'outer', 'inner', or null.
+ *    hand         false           Decides if the pointer hand should be shown for the flash object.
+ *
  */
 
+(function ($) {
+
+	/**
+	 * Stores all the event functions we'll be using.
+	 */
+	var events = {
+		elemouseenter : function (event) {
+			var $this = $(this);
+			// If not loaded, skip this
+			if (!ZeroClipboard.loadCheck()) {
+				// console.debug("Zeroclipboard is not loaded, please wait...");
+				setTimeout(function () {
+					$this.trigger('mouseenter.zeroclipboard');
+				}, ZeroClipboard.pollingInterval);
+				return;
+			}
+			// console.debug("Zeroclipboard is loaded!");
+
+			$('#zeroclipboard').data('activeele', $this);
+			var options = $this.data('zeroclipboard');
+			// Position the zeroclipboard element over this element
+			var position = $this.offset();
+			var width;
+			var height;
+			var paddingLeft = parseInt($this.css('padding-left').replace('px', ''));
+			var paddingTop = parseInt($this.css('padding-top').replace('px', ''));
+			var marginLeft = parseInt($this.css('margin-left').replace('px', ''));
+			var marginTop = parseInt($this.css('margin-top').replace('px', ''));
+			var borderLeft = parseInt($this.css('border-left-width').replace('px', ''));
+			var borderTop = parseInt($this.css('border-top-width').replace('px', ''));
+			switch (options.sizeMethod){
+				case 'outer':
+					width = $this.outerWidth(true);
+					height = $this.outerHeight(true);
+					position.left -= marginLeft;
+					position.top -= marginTop;
+					break;
+				case 'inner':
+					width = $this.innerWidth();
+					height = $this.innerHeight();
+					position.left += borderLeft;
+					position.top += borderTop;
+					break;
+				default:
+					width = $this.width();
+					height = $this.height();
+					position.left += borderLeft + paddingLeft;
+					position.top += borderTop + paddingTop;
+					break;
+			}
+			var css = {
+				'marginLeft'  : position.left,
+				'marginTop'   : position.top,
+				'width'       : width,
+				'height'      : height
+			};
+			$('#zeroclipboard').css(css);
+			$('#zeroclipboard-flash').css({
+				'width' : width,
+				'height': height
+			}).attr({
+				'width' : width,
+				'height': height
+			});
+			
+			$this.zeroclipboard('update');
+		},
+		elemouseleave : function (event) {
+		},
+		eleremove     : function (event) {
+			// Check if the element being removed was the active element
+			$(this).zeroclipboard('destroy');
+		}
+	};
+
+	// Setup our functions
+	var methods = {
+		/**
+		 * Initiates the object to support a zeroclipboard, and creates the new flash instance if required.
+		 *
+		 * @param   newoptions   The options to set to this element.
+		 */
+		init: function (newoptions) {
+			var $this = $(this);
+			var options = $this.data('zeroclipboard');
+			// console.debug(newoptions);
+			if (typeof options == 'undefined') {
+				if (typeof newoptions == 'undefined')
+					newoptions = {};
+				options = $.merge(newoptions, {
+					sizeMethod  : 'outer',
+					text        : 'Copy me!',
+					hand        : false
+				});
+			} else {
+				options = $.merge(newoptions, options);
+			}
+			// console.debug(options);
+			// Check if a ZeroClipboard object has been initiated.
+			if (!ZeroClipboard.initiated) {
+				// console.debug("Initiating zeroclipboard object.");
+				// Not initiated, create an object
+				$('<div id="zeroclipboard" style="position: absolute; left: 0; right: 0; z-index: 60000;"><div id="zeroclipboard-flash"></div></div>')
+					.prependTo('body');
+				$('#zeroclipboard')
+					.data('activeele', false);
+				// Now, check if swfobject is installed
+				if (typeof swfobject != 'undefined') {
+					var swfoptions = {
+						wmode             : 'transparent',
+						bgcolor           : '#ffffff',
+						quality           : 'best',
+						loop              : 'false',
+						allowscriptaccess : 'always',
+						allowfullscreen   : 'false'
+					};
+					swfobject.embedSWF(
+						ZeroClipboard.moviepath,
+						'zeroclipboard-flash',
+						"100", "100", "9.0.0", "",
+						{
+							'id': 'notneeded',
+							'width': 100,
+							'height': 100
+						},
+						swfoptions
+					);
+					ZeroClipboard.initiated = true;
+					// Start polling the elements
+					setInterval(function () {
+						var $zeroclipboard = $('#zeroclipboard');
+						if ($zeroclipboard.data('activeele') !== false) {
+							var $activeele = $zeroclipboard.data('activeele');
+							if (!$activeele.is(':visible'))
+								$activeele.trigger('mouseleave.zeroclipboard');
+						}
+					}, ZeroClipboard.pollingInterval);
+					// console.debug("Setup of zeroclipboard is complete.");
+				} else {
+					// console.debug('Swfobject must be loaded to use jQuery ZeroClipboard');
+				}
+			}
+			// Check if the element has already been added
+			if (typeof $this.data('zeroclipboard') === 'undefined') {
+				// Start binding our events to this element
+				$this
+					.bind('remove.zeroclipboard',     events.eleremove)
+					.bind('mouseenter.zeroclipboard', events.elemouseenter)
+					.bind('mouseleave.zeroclipboard', events.elemouseleave);
+				// Run an update... Maybe? TODO: Check without running.
+				$this.zeroclipboard('update');
+				// console.debug("Done initiating this element");
+			}
+			$this.data('zeroclipboard', options);
+			$this.zeroclipboard('update');
+		},
+
+		/**
+		 * Destroys the element
+		 * 
+		 */
+		destroy: function () {
+			var $activeele = $('#zeroclipboard').data('activeele');
+			if ($(this).get(0) == $activeele.get(0)) {
+				// Just hide the zeroclipboard
+				$('#zeroclipboard').css({
+					marginLeft : '-100%',
+					marginTop  : '-100%'
+				});
+				$('#zeroclipboard').data('activeele', false);
+			}
+			$(this).unbind('.zeroclipboard');
+		},
+
+		/**
+		 * Updates the zeroclipboard
+		 *
+		 */
+		update: function () {
+			// console.debug("Update was called on the element.");
+			var $zeroclipboard = $('#zeroclipboard');
+			var $activeele = $zeroclipboard.data('activeele');
+			if (ZeroClipboard.loaded && $activeele !== false) {
+				var $zeroclipboardflash = document.getElementById('zeroclipboard-flash');
+				var options = $activeele.data('zeroclipboard');
+				// update the text for this elements text
+				// console.debug(options.text);
+				$zeroclipboardflash.setText(options.text);
+				// and update the if the cursor should be shown
+				$zeroclipboardflash.setHandCursor(options.hand);
+			}
+		}
+	};
+
+	$.fn.zeroclipboard = function(method) {
+		// Method calling logic
+		if ( methods[method] ) {
+			methods[ method ].apply( this, Array.prototype.slice.call( arguments, 1 ));
+		} else if ( typeof method === 'object' || ! method ) {
+			methods.init.apply( this, arguments );
+		} else {
+			$.error( 'Method ' +  method + ' does not exist on jQuery.tooltip' );
+		}
+		return $(this);
+	}
+
+})(jQuery);
+
+// This is how the flash object will communicate with our JS
 var ZeroClipboard = {
-	moviepath: 'scripts/ZeroClipboard/ZeroClipboard.swf',
-	objects: [],
-	// The pairs take the SWF id and match it back to the original element
-	pairs: {},
+
+	moviepath       : 'scripts/ZeroClipboard.swf',
+	pollingInterval : 500,
+	
+	// Our states
+	initiated     : false,
+	loaded        : false,
+	disableEvents : false,
+
+	loadCheck: function () {
+		var $zeroclipboardflash = $('#zeroclipboard-flash');
+		var $activeele = $('#zeroclipboard').data('activeele');
+		var movie = $zeroclipboardflash.get(0);
+		if (!movie) {
+			setTimeout( function() {ZeroClipboard.dispatch('', 'load', null);}, 1 );
+		} else if (!ZeroClipboard.loaded && navigator.userAgent.match(/Firefox/) && navigator.userAgent.match(/Windows/)) {
+			setTimeout( function() {ZeroClipboard.dispatch('', 'load', null);}, 100 );
+			ZeroClipboard.loaded = true;
+		} else {
+			ZeroClipboard.loaded = true;
+		}
+		if (ZeroClipboard.loaded) {
+			if ($activeele !== false)
+				$activeele.zeroclipboard('update');
+		}
+		return ZeroClipboard.loaded;
+	},
+
+	// And this is where we communicate with the flash to the JS.
 	dispatch: function (id, eventName, args) {
-		var eventName = eventName.toString().toLowerCase().replace(/^on/, '');
+		eventName = eventName.toString().toLowerCase().replace(/^on/, '');
+		var $zeroclipboard = $('#zeroclipboard');
+		var $zeroclipboardflash = $('#zeroclipboard-flash');
+		var $activeele = $zeroclipboard.data('activeele');
 		// console.log("Dispatch happened. string is " + eventName);
 		switch (eventName) {
 			case 'load':
-				// movie claims it is ready, but in IE this isn't always the case...
-				// bug fix: Cannot extend EMBED DOM elements in Firefox, must use traditional function
-				var movie = document.getElementById('zeroclipboard_swf_' + id);
-				if (!movie) {
-					setTimeout( function() {ZeroClipboard.dispatch(id, 'load', null);}, 1 );
-					return;
-				}
-
-				// firefox on pc needs a "kick" in order to set these in certain cases
-				if (!$(ZeroClipboard.pairs[id]).data("zeroclipboard_ready") && navigator.userAgent.match(/Firefox/) && navigator.userAgent.match(/Windows/)) {
-					setTimeout( function() {ZeroClipboard.dispatch(id, 'load', null);}, 100 );
-					$(this.pairs[id]).data("zeroclipboard_ready", true);
-					return;
-				}
-
-				$(this.pairs[id]).data("zeroclipboard_ready", true);
-				ZeroClipboard.update(id);
+				// console.debug("Loaded was called...");
+				ZeroClipboard.loadCheck();
 				break;
 			case 'complete':
-
+				$activeele.trigger('complete');
 				break;
 			case 'mouseover':
-				$(this.pairs[id]).trigger('mouseover');
+				$activeele
+					.trigger('mouseover')
+					.trigger('mouseenter');
 				break;
 			case 'mouseout':
-				$(this.pairs[id]).trigger('mouseout');
+				$activeele
+					.trigger('mouseout')
+					.trigger('mouseleave');
+				ZeroClipboard.loaded = false;
 				// This is to cover up the bug of dragging the mouse out of the flash.
 				// Mainly used when reseting css
-				if ($(this.pairs[id]).data('zeroclipboard_downfix')) {
-					$(this.pairs[id]).trigger('mouseup');
+				if ($activeele.data('zeroclipboard_downfix')) {
+					$activeele.trigger('mouseup');
 				}
 				break;
 			case 'mouseup':
-				$(this.pairs[id]).trigger('mouseup');
-				$(this.pairs[id]).data('zeroclipboard_downfix', false);
+				$activeele.trigger('mouseup');
+				$activeele.data('zeroclipboard_downfix', false);
 				break;
 			case 'mousedown':
-				$(this.pairs[id]).data('zeroclipboard_downfix', true);
-				$(this.pairs[id]).trigger('mousedown');
+				$activeele.data('zeroclipboard_downfix', true);
+				$activeele.trigger('mousedown');
 				break;
 		}
 	},
 	update: function (id) {
-		// Take the ID, and find the main div.
-		var original = this.pairs[id];
-		if ($(original).data("zeroclipboard_ready")) {
-			// console.log("Update Fired");
-			var flash = document.getElementById('zeroclipboard_swf_' + id);
-			if ($(original).data('zeroclipboard_resize')) {
-				// console.log("Now resizing the flash element...");
-				// Get all the details
-				var elemWidth = $(original).outerWidth();
-				var elemHeight = $(original).outerHeight();
-				var elemPos = $(original).offset();
-				$(flash)
-					.attr('width', elemWidth)
-					.attr('height', elemHeight);
-				// Grab the flashes parent
-				$(flash).parent().css({
-					'width': elemWidth + 'px',
-					'height': elemHeight + 'px',
-					'top': elemPos.top,
-					'left': elemPos.left
-				});
-				$(original).data('zeroclipboard_resize', false);
-			}
-			flash.setText($(original).data('zeroclipboard_text'));
-			// console.log("Clipboard set, value is " + $(original).data('zeroclipboard_text'));
-			flash.setHandCursor($(original).data('zeroclipboard_hand'));
-		} else {
-			// console.log("Update skipped, waiting for flash to fully load.");
-		}
+		// Not really needed anymore :p
 	}
 };
 
-(function ($) {(
-	// Code borrowed from
-	// http://stackoverflow.com/questions/2200494/jquery-trigger-event-when-an-element-is-removed-from-the-dom
-	function() {
-		var ev = new $.Event('remove'),
-		orig = $.fn.remove;
-		$.fn.remove = function() {
-			$(this).trigger(ev);
-			orig.apply(this, arguments);
-		}
-	})();
-
-	// Setup a polling on displays of parent objects
-	setInterval(function () {
-		$.each(ZeroClipboard.pairs, function (id, contents) {
-			$('#zeroclipboard_swf_' + id).parent().css('display', $(contents).is(':visible') ? 'block' : 'none');
-		});
-	}, 250);
-
-	// Setup window resize event.
-	$(window).resize(function () {
-		$.each(ZeroClipboard.pairs, function (id, contents) {
-			if (contents == null) return;
-			$(contents).data('zeroclipboard_resize', true);
-			ZeroClipboard.update(id);
-		});
-	});
-
-	// Run the window resize anytime an element is removed
-	$("*").bind('remove', function () {
-		$(window).resize();
-	});
-
-
-	$.fn.zeroclipboarduid = function (fnoptions) {
-		if ($(this).length < 1) return;
-		var options = {
-			'prefix': '',
-			'length': 8,
-			'chars': "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz"
-		};
-		if (typeof fnoptions != "undefined") {
-			$.extend(options, fnoptions);
-		}
-		if (typeof prefix == "undefined") {
-			prefix = "";
-		}
-		return this.each(function() {
-			if ($(this).attr('id') != '') return $;
-			var retrn = '';
-			// This do-while will loop until we get a unique id!
-			var id = '#';
-			do {
-				retrn = '';
-				var first = true;
-				for (var i=0; i<options.length; i++) {
-					var rnum = Math.floor(Math.random() * options.chars.length);
-					retrn += options.chars.substring(rnum,rnum+1);
-				}
-				id = '#' + retrn;
-			} while ($('#' + retrn).length > 0 || retrn.match(/^[A-Za-z].*/) != retrn);
-			// Note the above code makes it so it MUST start with a letter, as per HTML specs
-			$(this).attr('id', retrn);
-			return $;
-		});
+// Code borrowed from
+// http://stackoverflow.com/questions/2200494/jquery-trigger-event-when-an-element-is-removed-from-the-dom
+(function ($) {
+	var ev = new $.Event('remove'),
+	orig = $.fn.remove;
+	$.fn.remove = function() {
+		$(this).trigger(ev);
+		orig.apply(this, arguments);
 	}
-
-	$.fn.zeroclipboard = function (fnoptions) {
-		if ($(this).length < 1) return;
- 		// console.time('zeroclipboard');
-		// This will first test if we need an update
-		var options = {
-			'destroy': false
-		};
-		if (typeof fnoptions != "undefined") {
-			$.extend(options, fnoptions);
-		}
-		var update = $(this).data('zeroclipboard_id');
-		var id = null;
-		if (!!update && options.destroy) {
-			// We have a request to destroy the flash, and it appears we have made the flash object already.
-			var id = $(this).data('zeroclipboard_id');
-			// console.log("Attempting to remove flash for id #" + id);
-			$('#zeroclipboard_swf_' + id).parent().remove();
-			ZeroClipboard.pairs[id] = null;
-		} else {
-			// Grab our ID
-			if (!update) {
-				$(this).zeroclipboarduid();
-				id = $(this).attr('id');
-				$(this).data('zeroclipboard_ready', false)
-					.data('zeroclipboard_text', "Set something to copy!")
-					.data('zeroclipboard_resize', false)
-					.data('zeroclipboard_hand', false);
-				$(this).data('zeroclipboard_id', id);
-				ZeroClipboard.pairs[id] = this;
-				// Grab this elements size
-				var elemWidth = $(this).outerWidth();
-				var elemHeight = $(this).outerHeight();
-				var elemPos = $(this).offset();
-				// Create our clipboard and container
-				var flashObj = null;
-				// Create a temp div for the SWFObject
-				$('<div></div>').attr('id', 'zeroclipboard_swf_' + id).appendTo('body');
-				swfobject.embedSWF(ZeroClipboard.moviepath, 'zeroclipboard_swf_' + id, elemWidth, elemHeight, "9.0.0", "", {
-					'id': id,
-					'width': elemWidth,
-					'height': elemHeight
-				}, {
-					wmode: 'transparent',
-					bgcolor: '#ffffff',
-					quality: 'best',
-					loop: 'false',
-					allowscriptaccess: 'always',
-					allowfullscreen: 'false'
-				});
-				var flashCont = $('<div></div>')
-					.css({
-						'width': elemWidth + 'px',
-						'height': elemHeight + 'px',
-						'position': 'absolute',
-						'left': elemPos.left,
-						'top': elemPos.top
-					})
-
-				//$(flashCont).css('zIndex', ZeroClipboard.zindex)
-				$('#zeroclipboard_swf_' + id).appendTo(flashCont);
-				ZeroClipboard.zindex++;
-				$(flashCont).appendTo('body');
-				// We check for a resize event called on the element
-				// Note! This only works with the jQuery Resize Event from Ben Alman
-				// Url: http://benalman.com/projects/jquery-resize-plugin/
-				$(this).resize(function () {
-					$(this).data('zeroclipboard_resize', true);
-					ZeroClipboard.update(id);
-				});
-				// Add an event to test when the element is destroyed to also destroy
-				// the flash object paired with the element.
-				$(this).bind('remove', function (event) {
-					var id = $(this).data('zeroclipboard_id');
-					// console.log("Attempting to remove flash for id #" + id);
-					$('#zeroclipboard_swf_' + id).parent().remove();
-					ZeroClipboard.pairs[id] = null;
-				});
-			} else {
-				// Set our ID for update
-				id = $(this).data('zeroclipboard_id');
-			}
-			// Update our options
-			if (typeof options.text != "undefined") {
-				// console.log("We got a new clip value for (#" + id + "). Value: " + options.text);
-				$(this).data('zeroclipboard_text', options.text);
-			}
-			if (typeof options.hand != "undefined") {
-				// console.log("We got a new hand value for (#" + id + "). Value: " + options.hand);
-				$(this).data('zeroclipboard_hand', options.hand);
-			}
-			ZeroClipboard.update(id);
-	 		// console.timeEnd('zeroclipboard');
- 		}
-		return this.each(function() {
-			return $;
-		});
-	};
-
 })(jQuery);

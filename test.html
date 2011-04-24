@@ -1,103 +1,151 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head> 
-<title>ZeroClipboard for jQuery</title>
-<style type="text/css">
-div.contents {
-	width: 700px;
-}
-* {
-	font-family: Arial;
-	font-size: 14px;
-}
-div.example {
-	border: 2px #333 solid;
-	padding: 10px;
-}
-div.code {
-	font-family: Courier New;
-	font-size: 14px;
-	padding: 2px;
-	border: 1px #333 solid;
-	background: #ccc;
-}
-h1 {
-	font-size: 22px;
-}
-h2 {
-	font-size: 18px
-}
-input {
-	width: 300px;
-	border: 1px solid #000;
-}
-</style>
+	<title>ZeroClipboard for jQuery</title>
+	<link type="text/css" rel="stylesheet" href="http://yandex.st/highlightjs/5.16/styles/default.min.css" />
+	<style type="text/css">
+	div.contents {
+		width: 700px;
+	}
+	* {
+		font-family: Arial;
+		font-size: 14px;
+	}
+	div.example {
+		border: 2px #333 solid;
+		padding: 10px;
+		margin: 10px;
+	}
+	code, code * {
+		font-family: Courier New;
+	}
+	h1 {
+		font-size: 22px;
+	}
+	h2 {
+		font-size: 18px
+	}
+	input {
+		width: 300px;
+		border: 1px solid #000;
+	}
+	body {
+		padding: 0;
+		margin: 0;
+		position: absolute;
+	}
+	</style>
 </head>
 <body>
-	<script type="text/javascript" src="scripts/jquery-1.4.2.js"></script>
+	<script type="text/javascript" src="http://yandex.st/highlightjs/5.16/highlight.min.js"></script>
+	<script type="text/javascript">hljs.initHighlightingOnLoad();</script>
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
 	<script type="text/javascript" src="scripts/zeroclipboard.jquery.js"></script>
-	<script type="text/javascript" src="scripts/jquery.ba-resize.min.js"></script>
-	<script type="text/javascript" src="scripts/swfobject.js"></script>
 	<script type="text/javascript" src="scripts/example.js"></script>
-	<div style="float: right; width: 300px;">
-		<p>Now, this test is for the window resize event. Just resize the window, and if it stays on the div below, the resize works fine :)</p>
-		<div id="resizetest" class="example">Copy something :D</div>
-	</div>
-	<div class="contents">
-		<h1>ZeroClipboard for jQuery</h1>
-		<p>Hello! My name is Kris, I created (Or, modified) this script to allow ZeroClipboard to mingle with jQuery a bit better.
-		The main goal of this project was to make a very simple clipboard feature, as the original didn't meet my needs. The problem
-		was that I had a site with multiple clipboards, needing to be managed and updated by the elements, and so this version
-		stores all the data in the elements, and pairs the element and flash object with an array. Also, its like any other jQuery
-		plugin you have seen :) Below are some examples on the use, and shows off some of its abilities.</p>
-		<p><strong>Important Notice!</strong> This scripts resize abilites are provided by a very helpful script over at BelAlman.com.
-		It takes the resize functionality of window, and applies it to other elements. Grab a copy from 
-		<a href="http://benalman.com/projects/jquery-resize-plugin/">this blog post</a> to enable the feature in this script. The only
-		other requirement is jQuery, but we all knew that one :)</p>
-		<h2>Basic Functionality</h2>
-		<div id="tester" class="example">Click to Copy Clipboard (Im a DIV)</div>
-		<p>Paste here -&gt; <input type="text" /></p>
-		<div class="code">
-			// Code for a basic clipboard.<br />
-			$(element).zeroclipboard({<br />
-			 &nbsp; 'text': '', // Set something for the user to copy<br />
-			 &nbsp; 'hand': true // Sets if you want the hand to show or not to show.<br />
-			});
-		</div>
-		<p>And as another example, you update the clipboards the same way you make them. So the code above you create or update
-		the clipboard. Try clicking the div to update the clipboard above.</p>
-		<div class="example" style="cursor: pointer;" id="testerupdate">Update the Clipboard Above</div>
-		<p>Note after doing so, the flash object is also resized to fit the </p>
-		<h2>Destorying</h2>
-		<p>Below will be a basic example of the destroying of the clipboard. 
-		<a href="#" onclick="return false;" id="destroyflasha">Click here to remove the flash clipboard below.</a></p>
-		<div class="example" id="destroyflash">Destroy this thing on me!</div>
-		<p>Now above we destroyed just the flash object, but when the element is removed using the $(ele).remove() method, we
-		come up with this:</p>
-		<div class="example" id="destroywhole">Destroy me!</div>
-		<p>And, <a href="#" id="destroywholea" onclick="return false;">Click me to destroy the element above me.</a></p>
-		<p>Notice the flash object is also removed with the element.</p>
-		<h2>Binding Events</h2>
-		<p>Finally, we come to the binding of events. There are 4 types of events. mouseOver, mouseOut, mouseDown, mouseUp. Using events
-		is also simple:</p>
-		<div id="testercss" class="example">Watch me change colors!</div>
-		<p>This is done with events. With this the CSS effects can be much more specific, and you can call other events at certain stages.
-		The this in the element refers to the element the flash object is paired to.</p>
-		<p>The following is an example in using the events, its just as you would with any event on the div.</p>
-		<div class="code">
-			$('#testercss').zeroclipboard({<br />
-			 &nbsp; 'text': 'Copied from #testercss',<br />
-			 &nbsp; 'hand': true<br />
-			}).mouseover(function () {<br />
-			 &nbsp; $(this).css({'color': '#f00'}, 1000);<br />
-			}).mouseout(function () {<br />
-			 &nbsp; $(this).css({'color': '#000'}, 1000);<br />
-			}).mousedown(function () {<br />
-			 &nbsp; $(this).css('font-weight', 'bold');<br />
-			}).mouseup(function () {<br />
-			 &nbsp; $(this).css('font-weight', 'normal');<br />
-			});
+	<div style="padding: 10px;">
+		<div class="contents">
+			<h1>ZeroClipboard for jQuery</h1>
+			<div style="float: right; width: 300px;">
+				<p>Now, this test is for the window resize event. Just resize the window, and if it stays on the div below, the resize works fine :)</p>
+				<div id="resizetest" class="example">Copy something :D</div>
+			</div>
+			<p>Hello! My name is Kris, I created (Or, modified) this script to allow ZeroClipboard to mingle with jQuery a bit better.
+			The main goal of this project was to make a very simple clipboard feature, as the original didn't meet my needs. The problem
+			was that I had a site with multiple clipboards, needing to be managed and updated by the elements, and so this version
+			stores all the data in the elements, and uses a single flash object as to not bring the browser to a grinding halt.</p>
+			<p>This script has changed heavily since its first incarnation, and gives just about the same experience. Changes since
+			the last version:</p>
+			<ul>
+				<li>Uses one flash element being repositioned around the page. Decreases load times and stress when multiple elements are copyable.</li>
+				<li>Added the choice to choose which size method to use (Outer, inner, standard .width()/.height())</li>
+				<li>Removed a couple of dependencies, and removed the resize event. This was due to the fact that if you resize an inactive
+				element, it updates next time it is hovered over. Also if needed, the update can be called manually, which is a lot more
+				resource friendly :p</li>
+				<li>Added the events 'mouseleave', 'mouseenter', and 'complete' (Which is fired after a successful copy)</li>
+				<li>Just about rewrote the thing, lots of code changes.</li>
+			</ul>
+			<h2>Basic Functionality</h2>
+			<div id="tester" class="example">Click to Copy Clipboard (Im a DIV)</div>
+			<p>Paste here -&gt; <input type="text" /></p>
+			<pre class="javascript"><code>
+// Code for a basic clipboard.
+$(element).zeroclipboard({
+
+	// The text you want to have copied, defaults to 'Copy me!'
+	text       : '',
+	
+	/*
+	 * Decides if the hand should be shown (true), or the default pointer
+	 * (false). Defaults to false
+	 */
+	hand       : true,
+	
+	/* 
+	 * Decides which width/height function to use. Can be 'outer', 'inner',
+	 * or null (for .width() and .height()). With 'outer', it includes
+	 * margins
+	 */
+	sizeMethod : 'outer'
+});
+			</code></pre>
+			<p>And as another example, you update the clipboards the same way you make them. So the code above you create or update
+			the clipboard. Try clicking the div to update the clipboard above.</p>
+			<div class="example" style="cursor: pointer;" id="testerupdate">Update the Clipboard Above</div>
+			<p>Note after doing so, the flash object is resized once you mouseover it again.</p>
+			<h2>Destroying</h2>
+			<p>Below will be a basic example of the destroying of the clipboard. 
+			<a href="#" onclick="return false;" id="destroyflasha">Click here to remove the flash clipboard below.</a></p>
+			<div class="example" id="destroyflash">Destroy this thing on me!</div>
+			<p>To do this, simply add call the zeroclipboard function like:</p>
+			<pre class="javascript"><code>
+$('#destroyflash').zeroclipboard('destroy');
+			</code></pre>
+			<p>Now above we destroyed just the flash object, but when the element is removed using the $(ele).remove() method, we
+			come up with this:</p>
+			<div class="example" id="destroywhole">Destroy me!</div>
+			<p>And, <a href="#" id="destroywholea" onclick="return false;">Click me to destroy the element above me.</a></p>
+			<p>Notice the flash object is also removed with the element. (Really it just gets hidden, but you get the idea)</p>
+			<h2>Updating</h2>
+			<p>When you need to update the element manually, just do the following:</p>
+			<pre class="javascript"><code>
+$('#myelement').zeroclipboard('update');
+			</code></pre>
+			<h2>Binding Events</h2>
+			<p>Finally, we come to the binding of events. The events supported are mouseOver, mouseEnter, mouseOut, mouseLeave, mouseDown,
+			mouseUp, and complete. Using events is also simple:</p>
+			<div id="testercss" class="example">Watch me change colors!</div>
+			<p>This is done with events. With this the CSS effects can be much more specific, and you can call other events at certain stages.
+			The this in the element refers to the element the flash object is paired to.</p>
+			<p>The following is an example in using the events, its just as you would with any event on the div.</p>
+			<pre class="javascript"><code>
+$('#testercss').zeroclipboard({
+	'text': 'Copied from #testercss',
+	'hand': true
+})
+// Add a mouseover event, note mouseenter also works
+.mouseover(function () {
+	$(this).css({'color': '#f00'}, 1000);
+})
+// Add a mouseout event, note mouseleave also works
+.mouseout(function () {
+	$(this).css({'color': '#000'}, 1000);
+})
+// This is fired when the mouse is down
+.mousedown(function () {
+	$(this).css('font-weight', 'bold');
+})
+// This is fired when the mouse is up
+.mouseup(function () {
+	$(this).css('font-weight', 'normal');
+})
+// This is fired on a successful copy
+.bind('complete', function () {
+	alert('Copied text!');
+});
+			</code></pre>
 		</div>
 	</div>
 </body>
