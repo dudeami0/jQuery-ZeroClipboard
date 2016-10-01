@@ -256,7 +256,7 @@
 				var options = $activeele.data('zeroclipboard');
 				// update the text for this elements text
 				// console.debug(options.text);
-				$zeroclipboardflash.setText(options.text);
+				$zeroclipboardflash.setText($(options.text).val());
 				// and update the if the cursor should be shown
 				$zeroclipboardflash.setHandCursor(options.hand);
 			}
